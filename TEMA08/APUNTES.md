@@ -140,6 +140,40 @@ public class Vehiculo {
 
 ---
 
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+
+<hibernate-configuration>
+    <session-factory>
+        
+        <!-- Configuración de conexión -->
+        <property name="hibernate.connection.driver_class">com.mysql.cj.jdbc.Driver</property>
+        <property name="hibernate.connection.url">jdbc:mysql://localhost:3306/empresa_db</property>
+        <property name="hibernate.connection.username">root</property>
+        <property name="hibernate.connection.password">Med@c</property>
+        
+        <!-- Dialecto -->
+        <property name="hibernate.dialect">org.hibernate.dialect.MySQL8Dialect</property>
+        
+        <!-- Crear o actualizar tablas -->
+        <property name="hibernate.hbm2ddl.auto">update</property>
+        
+        <!-- Mostrar SQL -->
+        <property name="show_sql">true</property>
+        <property name="format_sql">true</property>
+        
+        <!-- Fichero de mapeo -->
+        <mapping resource="Customer.hbm.xml"/>
+        <mapping resource="Order.hbm.xml"/>
+        
+    </session-factory>
+</hibernate-configuration>
+```
+
+---
+
+
+
 ## 6️⃣ Sesiones y Objetos Hibernate I – Estados
 
 Hibernate utiliza el objeto **`Session`** para interactuar con la base de datos.
