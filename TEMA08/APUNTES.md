@@ -137,41 +137,7 @@ public class Vehiculo {
    </class>
 </hibernate-mapping>
 ```
-
 ---
-
-```xml
-<?xml version="1.0" encoding="UTF-8"?>
-
-<hibernate-configuration>
-    <session-factory>
-        
-        <!-- Configuración de conexión -->
-        <property name="hibernate.connection.driver_class">com.mysql.cj.jdbc.Driver</property>
-        <property name="hibernate.connection.url">jdbc:mysql://localhost:3306/empresa_db</property>
-        <property name="hibernate.connection.username">root</property>
-        <property name="hibernate.connection.password">Med@c</property>
-        
-        <!-- Dialecto -->
-        <property name="hibernate.dialect">org.hibernate.dialect.MySQL8Dialect</property>
-        
-        <!-- Crear o actualizar tablas -->
-        <property name="hibernate.hbm2ddl.auto">update</property>
-        
-        <!-- Mostrar SQL -->
-        <property name="show_sql">true</property>
-        <property name="format_sql">true</property>
-        
-        <!-- Fichero de mapeo -->
-        <mapping resource="Customer.hbm.xml"/>
-        <mapping resource="Order.hbm.xml"/>
-        
-    </session-factory>
-</hibernate-configuration>
-```
-
----
-
 
 
 ## 6️⃣ Sesiones y Objetos Hibernate I – Estados
@@ -186,7 +152,9 @@ Hibernate utiliza el objeto **`Session`** para interactuar con la base de datos.
 
 📄 **Ejemplo de sesión y transacción:**
 ```java
-SessionFactory sessionFactory;
+
+// Crear el SessionFactory usando la configuración de hibernate.cfg.xml
+SessionFactory sessionFactory = new Configuration().configure().buildSessionFactory();
 Session session = sessionFactory.openSession();
 Transaction transaction = null;
 
@@ -195,8 +163,9 @@ try {
     // operaciones de persistencia
     transaction.commit();
 } catch (Exception e) {
-    if (transaction != null) transaction.rollback();
-    e.printStackTrace();
+    if (transaction != null) 
+        transaction.rollback();
+        e.printStackTrace();
 } finally {
     session.close();
 }

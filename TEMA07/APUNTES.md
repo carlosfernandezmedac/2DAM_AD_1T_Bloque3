@@ -43,21 +43,22 @@ Hibernate realiza automáticamente este mapeo.
 
 | ✅ Ventajas | ⚠️ Inconvenientes |
 |-------------|-------------------|
-| Abstracción del SQL nativo | Consumo de recursos |
-| Mayor productividad | Complejidad en consultas muy avanzadas |
-| Orientación a objetos total | Curva de aprendizaje inicial |
-| Gestión automática de transacciones | Logs más extensos |
+| Mejora eficiencia desarrollo | Consumo de recursos |
+| Desarrollo más orientado a objetos | Complejidad en consultas muy avanzadas |
+| Manejabilidad | Curva de aprendizaje inicial |
+| Facilidad para introducir nuevas funciones | Logs más extensos |
 
 ---
 
 ## 4️⃣ Fases del Mapeo Objeto–Relacional
 
-1. **Fase 1: Objetos:** Clases Java (POJOs) que representan entidades.  
+1. **Fase 1: Objetos:**: Clases Java (POJOs) que representan entidades.  
 2. **Fase 2: Persistencia:** Hibernate traduce objetos a registros SQL.  
 3. **Fase 3: Relacional:** Los datos se almacenan realmente en MySQL.
 
-📊 Hibernate usa internamente caché, sesiones, transacciones y consultas HQL (Hibernate Query Language) para optimizar el proceso.
+![alt text](./img/esquema_ORM.png)
 
+🎥 [Vídeo 1: Esquema ORM](https://bit.ly/2EvTKy0)
 ---
 
 ## 5️⃣ Herramientas ORM más Usadas en Java
@@ -74,7 +75,7 @@ En este tema trabajaremos con **Hibernate**, el ORM por excelencia.
 
 ## 6️⃣ Arquitectura y Componentes de Hibernate
 
-![alt text](img/arquitectura.png)
+![alt text](./img/arquitectura.png)
 
 
 🧠 **Componentes principales:**
@@ -93,6 +94,8 @@ Aplicación Java → Hibernate ORM → Driver JDBC → MySQL
 
 ## 7️⃣ Instalación del Proyecto Spring Boot + Hibernate + MySQL
 
+✅ Esto permite a Hibernate crear y actualizar automáticamente las tablas según las entidades.
+
 ### 🧩 Paso 1: Crear Proyecto en Spring Initializr
 
 1. Entra en 👉 [https://start.spring.io](https://start.spring.io)
@@ -107,6 +110,9 @@ Aplicación Java → Hibernate ORM → Driver JDBC → MySQL
    - `Spring Data JPA`
    - `MySQL Driver`
 4. Pulsa **Generate** y descomprime el proyecto.
+
+
+🎥 [Vídeo 2: Agregar Hibernate](https://bit.ly/2CYhCKd)
 
 ---
 
@@ -133,8 +139,8 @@ Aplicación Java → Hibernate ORM → Driver JDBC → MySQL
 ```
 
 ---
-
-### 🧩 Paso 3: Configuración de Hibernate en `application.properties`
+### 🧩 Paso 3 : Ficheros de configuración de hibernate
+### ✅ OPCIÓN 1: Spring Boot + Hibernate + application.properties
 
 📁 `src/main/resources/application.properties`
 
@@ -155,125 +161,88 @@ logging.level.org.hibernate.SQL=debug
 logging.level.org.hibernate.type.descriptor.sql=trace
 ```
 
-✅ Esto permite a Hibernate crear y actualizar automáticamente las tablas según las entidades.
+✔️ Spring Boot detecta las entidades @Entity automáticamente
+✔️ No necesitas hibernate.cfg.xml
+✔️ Hibernate es gestionado por Spring Boot: NO instancias SessionFactory a mano
 
+📌 En tu clase main, sí debe existir @SpringBootApplication:
+
+```java
+@SpringBootApplication
+public class DemoApplication {
+    public static void main(String[] args) {
+        SpringApplication.run(DemoApplication.class, args);
+    }
+}
+```
 ---
 
-## 8️⃣ Caso Práctico: Mini App con Hibernate
+### ✅ OPCIÓN 2: Hibernate clásico sin Spring Boot (hibernate.cfg.xml)
 
-Vamos a construir una pequeña app de gestión de clientes y pedidos 👇
+📁 `src/main/resources/hibernate.cfg.xml`
 
-### 🧩 Paso 1: Crear la Entidad `Cliente`
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<hibernate-configuration>
+    <session-factory>
+        
+        <!-- Configuración de conexión -->
+        <property name="hibernate.connection.driver_class">com.mysql.cj.jdbc.Driver</property>
+        <property name="hibernate.connection.url">jdbc:mysql://localhost:3306/empresa_db</property>
+        <property name="hibernate.connection.username">root</property>
+        <property name="hibernate.connection.password">Med@c</property>
 
-📁 `src/main/java/com/empresa/model/Cliente.java`
+        <!-- Dialecto -->
+        <property name="hibernate.dialect">org.hibernate.dialect.MySQL8Dialect</property>
 
-```java
-package com.empresa.model;
+        <!-- Crear o actualizar tablas -->
+        <property name="hibernate.hbm2ddl.auto">update</property>
 
-import jakarta.persistence.*;
+        <!-- Mostrar SQL -->
+        <property name="hibernate.show_sql">true</property>
+        <property name="hibernate.format_sql">true</property>
 
-@Entity
-@Table(name = "clientes")
-public class Cliente {
+        <!-- Archivos XML de mapeo -->
+        <mapping resource="Customer.hbm.xml"/>
+        <mapping resource="Product.hbm.xml"/>
+        <mapping resource="Order.hbm.xml"/>
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @Column(nullable = false)
-    private String nombre;
-
-    private String email;
-
-    // Getters y setters
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-    public String getNombre() { return nombre; }
-    public void setNombre(String nombre) { this.nombre = nombre; }
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
-}
+    </session-factory>
+</hibernate-configuration>
 ```
 
-### 🧩 Paso 2: Crear el Repositorio JPA
+📌 En este modo:
 
-📁 `src/main/java/com/empresa/repository/ClienteRepository.java`
+Hibernate NO usa Spring Boot
 
-```java
-package com.empresa.repository;
-
-import org.springframework.data.jpa.repository.JpaRepository;
-import com.empresa.model.Cliente;
-
-public interface ClienteRepository extends JpaRepository<Cliente, Long> {
-}
-```
-
-### 🧩 Paso 3: Controlador REST
-
-📁 `src/main/java/com/empresa/controller/ClienteController.java`
+Tú te encargas de instanciar Hibernate manualmente:
 
 ```java
-package com.empresa.controller;
+public class Main {
+    public static void main(String[] args) {
+        SessionFactory sessionFactory =
+                new Configuration().configure().buildSessionFactory();
 
-import com.empresa.model.Cliente;
-import com.empresa.repository.ClienteRepository;
-import org.springframework.web.bind.annotation.*;
-import java.util.List;
+        Session session = sessionFactory.openSession();
+        session.beginTransaction();
 
-@RestController
-@RequestMapping("/clientes")
-public class ClienteController {
+        // ...
 
-    private final ClienteRepository repo;
-
-    public ClienteController(ClienteRepository repo) {
-        this.repo = repo;
-    }
-
-    @GetMapping
-    public List<Cliente> listar() {
-        return repo.findAll();
-    }
-
-    @PostMapping
-    public Cliente crear(@RequestBody Cliente cliente) {
-        return repo.save(cliente);
+        session.getTransaction().commit();
+        session.close();
+        sessionFactory.close();
     }
 }
 ```
 
-🚀 **Ejecuta la aplicación** y prueba en Postman o navegador:
 
-- GET 👉 `http://localhost:8080/clientes`
-- POST 👉 `http://localhost:8080/clientes` con cuerpo JSON:
-```json
-{
-  "nombre": "Ana Pérez",
-  "email": "ana@empresa.com"
-}
-```
+➡️ Aquí NO debe existir la anotación @SpringBootApplication
+
+Solo sería una clase Java ejecutándose con main().
 
 ---
 
-## 9️⃣ Caso Práctico: Configurar Logs de Hibernate
-
-Si DevOps solicita ver las consultas SQL que ejecuta Hibernate, puedes activar los logs:
-
-```properties
-logging.level.org.hibernate.SQL=debug
-logging.level.org.hibernate.type.descriptor.sql=trace
-```
-
-Así verás en consola las consultas SQL exactas:
-```sql
-Hibernate: insert into clientes (email, nombre) values (?, ?)
-Hibernate: select * from clientes
-```
-
----
-
-## 🔟 Resumen del Tema
+## Resumen del Tema
 
 | Concepto | Descripción |
 |-----------|-------------|
