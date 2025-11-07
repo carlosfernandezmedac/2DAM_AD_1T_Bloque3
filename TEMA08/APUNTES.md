@@ -109,6 +109,19 @@ try {
     session.close();
 }
 ```
+---
+
+📄 **Ejemplo de sesión y transacción:**
+```java
+
+SessionFactory sessionFactory = new Configuration().configure().buildSessionFactory();
+Session session = sessionFactory.openSession();
+Session s = sessionFactory.openSession();
+s.beginTransaction();
+// operaciones de persistencia
+s.getTransaction().commit();
+s.close();
+```
 
 ---
 
