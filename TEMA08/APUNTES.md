@@ -38,19 +38,9 @@ public class Customer {
 
     public Customer(String fname, String lname, int custNum) {
         this.firstName = fname;
-        this.lastName = lname;
+        this.lastLastName = lname;
         this.customerNumber = custNum;
     }
-
-    // Getters y Setters
-    public int getId() { return id; }
-    public void setId(int id) { this.id = id; }
-    public String getFirstName() { return firstName; }
-    public void setFirstName(String firstName) { this.firstName = firstName; }
-    public String getLastName() { return lastName; }
-    public void setLastName(String lastName) { this.lastName = lastName; }
-    public int getCustomerNumber() { return customerNumber; }
-    public void setCustomerNumber(int customerNumber) { this.customerNumber = customerNumber; }
 }
 ```
 
@@ -64,22 +54,15 @@ Hibernate puede usar **anotaciones JPA** o **ficheros XML** (`.hbm.xml`) para de
 ```xml
 <hibernate-mapping>
    <class name="com.empresa.model.Customer" table="CUSTOMER">
-
-      <meta attribute="class-description">
-         Clase que almacena información de clientes.
-      </meta>
-
       <id name="id" type="int" column="id">
          <generator class="native"/>
       </id>
-
       <property name="firstName" column="first_name" type="string"/>
       <property name="lastName" column="last_name" type="string"/>
       <property name="customerNumber" column="customer_number" type="int"/>
    </class>
 </hibernate-mapping>
 ```
-📁 Archivo: `Customer.hbm.xml`
 
 ---
 
@@ -90,55 +73,11 @@ Hibernate puede usar **anotaciones JPA** o **ficheros XML** (`.hbm.xml`) para de
 | `<hibernate-mapping>` | Raíz del documento. Contiene las clases mapeadas. |
 | `<class>` | Define la relación entre una clase Java y una tabla SQL. |
 | `<meta>` | Información adicional opcional. |
-| `<id>` | Clave primaria. Contiene el generador automático. |
-| `<generator>` | Define la estrategia de generación de la PK (`native`, `identity`, `sequence`). |
-| `<property>` | Mapea atributos de la clase a columnas SQL. |
+| `<id>` | Clave primaria. |
+| `<generator>` | Estrategia de generación (`native`, `identity`, `sequence`). |
+| `<property>` | Mapea atributos de clase a columnas SQL. |
 
 ---
-
-## 5️⃣ Caso Práctico 1 – Clase Persistente “Vehículo”
-
-🧩 **Requisitos:** Crear una clase persistente `Vehiculo` con los campos:
-- `marca`, `motor`, `numeroRuedas`, `numeroKilometros` y un `id` autoincrementable.
-
-📄 **Código:**
-```java
-public class Vehiculo {
-    private int id;
-    private String marca;
-    private String motor;
-    private int numeroRuedas;
-    private int numeroKilometros;
-
-    public Vehiculo() {}
-
-    public Vehiculo(String marca, String motor, int numeroRuedas, int numeroKilometros) {
-        this.marca = marca;
-        this.motor = motor;
-        this.numeroRuedas = numeroRuedas;
-        this.numeroKilometros = numeroKilometros;
-    }
-
-    // Getters y setters omitidos por brevedad
-}
-```
-
-📄 **Mapeo XML (Vehiculo.hbm.xml):**
-```xml
-<hibernate-mapping>
-   <class name="Vehiculo" table="VEHICULO">
-      <id name="id" type="int" column="id">
-         <generator class="native"/>
-      </id>
-      <property name="marca" column="marca" type="string"/>
-      <property name="motor" column="motor" type="string"/>
-      <property name="numeroRuedas" column="num_ruedas" type="int"/>
-      <property name="numeroKilometros" column="km" type="int"/>
-   </class>
-</hibernate-mapping>
-```
----
-
 
 ## 6️⃣ Sesiones y Objetos Hibernate I – Estados
 
@@ -147,7 +86,7 @@ Hibernate utiliza el objeto **`Session`** para interactuar con la base de datos.
 | Estado | Descripción |
 |---------|-------------|
 | **Transient** | El objeto aún no se ha guardado. |
-| **Persistent** | El objeto está asociado a una sesión y a una fila de base de datos. |
+| **Persistent** | El objeto está asociado a una sesión y a una fila de BD. |
 | **Detached** | La sesión se ha cerrado y el objeto ya no está sincronizado. |
 
 📄 **Ejemplo de sesión y transacción:**
@@ -173,124 +112,113 @@ try {
 
 ---
 
-## 7️⃣ Sesiones y Objetos Hibernate II – Métodos Importantes
+## 7️⃣ Métodos Importantes de `Session`
 
 | Método | Descripción |
 |---------|-------------|
 | `beginTransaction()` | Inicia una transacción. |
-| `close()` | Cierra la sesión. |
-| `clear()` | Limpia la caché de sesión. |
 | `createQuery()` | Crea una consulta HQL. |
 | `get()` | Recupera un objeto por ID (puede devolver `null`). |
-| `load()` | Recupera un objeto o lanza excepción si no existe. |
-| `save()` | Inserta un nuevo registro y devuelve el ID. |
+| `save()` | Inserta un nuevo registro. |
 | `update()` | Actualiza un registro existente. |
-| `merge()` | Actualiza, sin importar si la sesión existe. |
 | `delete()` | Elimina un registro. |
 
 ---
 
 ## 8️⃣ Carga, Almacenamiento y Modificación de Objetos
 
-🗄️ **Carga:**
+**Carga:**
 ```java
 Cliente c = session.get(Cliente.class, 1);
 ```
 
-💾 **Guardar:**
+**Guardar:**
 ```java
 session.save(new Cliente("Ana", "López", 200));
 ```
 
-✏️ **Actualizar:**
+**Actualizar:**
 ```java
 cliente.setNombre("Ana María");
 session.update(cliente);
 ```
 
-🧹 **Eliminar:**
+**Eliminar:**
 ```java
 session.delete(cliente);
 ```
 
-✅ **Guardar o Actualizar automáticamente:**
+---
+
+## ✅ IMPORTANTE: ¿Por qué Hibernate necesita cargar objetos completos?
+Cuando pedimos un ID por teclado, Hibernate **NO trabaja con IDs**, trabaja con **POJOs (objetos Java)**.
+
+❌ INCORRECTO (esto no funciona):
 ```java
-session.saveOrUpdate(cliente);
+Order o = new Order();
+o.setCustomerId(5);
+session.save(o);
 ```
+
+✅ CORRECTO:
+```java
+Customer c = session.get(Customer.class, idCliente);
+Product p = session.get(Product.class, idProducto);
+
+Order o = new Order(new Date(), cantidad, p.getPrecio() * cantidad, c, p);
+session.save(o);
+```
+
+💡 Hibernate necesita el objeto completo para mantener la relación en la BD.
 
 ---
 
 ## 9️⃣ Consultas HQL (Hibernate Query Language)
 
-HQL es un lenguaje similar a SQL pero orientado a objetos.
-
-📄 **Ejemplo básico:**
+📄 **Consulta clásica (NO tipada, necesita cast):**
 ```java
 String hql = "FROM Customer";
 Query consulta = session.createQuery(hql);
-consulta.setFirstResult(0);
-consulta.setMaxResults(40);
 List results = consulta.list();
 ```
 
-📄 **Ejemplo de Update con parámetros:**
+📄 **Consulta moderna (TIPADA, sin cast):**
 ```java
-Query q = session.createQuery(
-   "update Customer set customerNumber=:num where id=:id and firstName=:name");
-q.setParameter("num", 25);
-q.setParameter("id", 105);
-q.setParameter("name", "Pepe");
-int status = q.executeUpdate();
-transaction.commit();
+List<Customer> customers = session.createQuery("FROM Customer", Customer.class)
+                                  .getResultList();
 ```
 
-🔹 También se pueden usar consultas SQL nativas con `createSQLQuery()`.
-
----
-
-## 🔟 Gestión de Transacciones con Hibernate
-
-Una **transacción** representa una unidad de trabajo atómica: si algo falla, se revierte todo.
-
-🧠 **Principio ACID:** Atomicidad, Consistencia, Aislamiento y Durabilidad.
-
-📄 **Métodos importantes de `Transaction`:**
-| Método | Descripción |
-|---------|-------------|
-| `begin()` | Inicia una transacción. |
-| `commit()` | Confirma la transacción. |
-| `rollback()` | Cancela la transacción. |
-| `isActive()` | Comprueba si sigue activa. |
-| `setTimeout(int)` | Define un tiempo máximo. |
-
----
-
-## 1️⃣1️⃣ Caso Práctico 2 – Sentencias HQL
-
-📄 **Planteamiento:**
-Actualizar el campo `customerNumber` de la entidad `Customer` a `25` cuando `id=105` y `firstName='Pepe'`.
-
-📄 **Solución:**
+📄 **Listar pedidos de un cliente**
 ```java
-Session session = sessionFactory.openSession();
-Transaction transaction = session.beginTransaction();
+List<Order> pedidos = session.createQuery(
+"FROM Order o WHERE o.customer.id = :id ORDER BY o.fecha DESC",
+Order.class)
+.setParameter("id", idCliente)
+.getResultList();
+
+ for (Object obj : results) {
+            Order o = (Order) obj; // cast porque List no es tipada
+            System.out.println(
+                "Pedido " + o.getId() +
+                " - Producto: " + o.getProduct().getNombre() +
+                " - Importe: " + o.getImporte()
+            );
+        }
+```
+
+📄 **Update con parámetros**
+```java
 Query q = session.createQuery(
-   "update Customer set customerNumber=:num where id=:id and firstName=:name");
+   "update Customer set customerNumber=:num where id=:id");
 q.setParameter("num", 25);
 q.setParameter("id", 105);
-q.setParameter("name", "Pepe");
-int status = q.executeUpdate();
-transaction.commit();
-
-if (status > 0)
-    System.out.println("✅ Update realizado");
-else
-    System.out.println("⚠️ Update no realizado");
+q.executeUpdate();
+session.getTransaction().commit();
 ```
 
 ---
 
-## 1️⃣2️⃣ Resumen del Tema
+## 🔟 Resumen del Tema
 
 | Concepto | Descripción |
 |-----------|-------------|
@@ -302,13 +230,3 @@ else
 | **Persistencia** | Guardar, actualizar o borrar objetos de BD. |
 
 ---
-
-## 🔗 Webgrafía
-- [Hibernate.org](https://hibernate.org/)
-- [Oracle Java Docs](https://www.oracle.com/es/java/)
-- [Spring Boot JPA Reference](https://docs.spring.io/spring-boot/docs/current/reference/html/data.html)
-- [MVN Repository – Hibernate Core](https://mvnrepository.com/artifact/org.hibernate/hibernate-core)
-
----
-
-> ✨ **Conclusión:** En esta unidad hemos aprendido cómo Hibernate gestiona las clases persistentes, cómo se definen los ficheros de mapeo, cómo se usan las sesiones, y cómo aplicar consultas HQL para manipular datos de manera eficiente en MySQL.
